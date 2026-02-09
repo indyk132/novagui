@@ -472,13 +472,12 @@ local unloadRow = CreateSettingsRow(DangerSection)
 
 local unloadBtn = Interface.New("TextButton", {
 	Text = "",
-	BackgroundColor3 = Color3.fromRGB(60, 20, 20),
+	BackgroundTransparency = 1,
 	Size = UDim2.new(1, 0, 1, -8),
 	Position = UDim2.new(0, 0, 0, 4),
 	AutoButtonColor = false,
 	ClipsDescendants = true,
 	Parent = unloadRow,
-	["UICorner"] = { CornerRadius = UDim.new(0, 6) },
 })
 
 local unloadIcon = Interface.New("ImageLabel", {
@@ -503,7 +502,13 @@ Interface.New("TextLabel", {
 	Parent = unloadBtn,
 })
 
-Helper.HoverEffect(unloadBtn, Color3.fromRGB(80, 25, 25), Color3.fromRGB(60, 20, 20))
+unloadBtn.MouseEnter:Connect(function()
+	unloadBtn.BackgroundTransparency = 0.85
+	unloadBtn.BackgroundColor3 = Theme.Error
+end)
+unloadBtn.MouseLeave:Connect(function()
+	unloadBtn.BackgroundTransparency = 1
+end)
 unloadBtn.MouseButton1Click:Connect(function()
 	ScreenGui:Destroy()
 end)
@@ -513,6 +518,17 @@ Interface.New("TextLabel", {
 	BackgroundTransparency = 1,
 	Size = UDim2.new(1, 0, 0, 24),
 	Text = "<b>Nova UI</b> — GUI Library",
+	TextColor3 = Theme.TextMuted,
+	TextSize = 12,
+	Font = Enum.Font.GothamMedium,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	RichText = true,
+	Parent = AboutSection,
+})
+Interface.New("TextLabel", {
+	BackgroundTransparency = 1,
+	Size = UDim2.new(1, 0, 0, 20),
+	Text = "Creator: <b>04xSkater</b>",
 	TextColor3 = Theme.TextMuted,
 	TextSize = 12,
 	Font = Enum.Font.GothamMedium,
