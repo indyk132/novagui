@@ -1150,7 +1150,7 @@ end)
 -- EXAMPLE USAGE (remove this block when using as a library)
 -- ============================================================
 
-local Main = Library:AddCategory("Main", "home")
+local Main = Library:AddCategory("Main", "house")
 Main:AddToggle("Feature A", false, function(v)
 	Library:Notify(`Feature A: {v and "ON" or "OFF"}`)
 end)
