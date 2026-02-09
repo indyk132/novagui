@@ -466,6 +466,48 @@ CreateSettingsDropdown(GeneralSection, "DPI Scale", { "50%", "75%", "100%", "125
 	ScreenDPIScale.Scale = (scaleNumber or 100) / 100
 end)
 
+-- Unload button
+local DangerSection = CreateSettingsSection("Danger Zone")
+local unloadRow = CreateSettingsRow(DangerSection)
+
+local unloadBtn = Interface.New("TextButton", {
+	Text = "",
+	BackgroundColor3 = Color3.fromRGB(60, 20, 20),
+	Size = UDim2.new(1, 0, 1, -8),
+	Position = UDim2.new(0, 0, 0, 4),
+	AutoButtonColor = false,
+	ClipsDescendants = true,
+	Parent = unloadRow,
+	["UICorner"] = { CornerRadius = UDim.new(0, 6) },
+})
+
+local unloadIcon = Interface.New("ImageLabel", {
+	BackgroundTransparency = 1,
+	Size = UDim2.fromOffset(14, 14),
+	Position = UDim2.new(0, 10, 0.5, 0),
+	AnchorPoint = Vector2.new(0, 0.5),
+	ImageColor3 = Theme.Error,
+	Parent = unloadBtn,
+})
+Icons.ApplyIcon(unloadIcon, "power")
+
+Interface.New("TextLabel", {
+	BackgroundTransparency = 1,
+	Size = UDim2.new(1, -34, 1, 0),
+	Position = UDim2.new(0, 30, 0, 0),
+	Text = "Unload Nova",
+	TextColor3 = Theme.Error,
+	TextSize = 13,
+	Font = Enum.Font.GothamBold,
+	TextXAlignment = Enum.TextXAlignment.Left,
+	Parent = unloadBtn,
+})
+
+Helper.HoverEffect(unloadBtn, Color3.fromRGB(80, 25, 25), Color3.fromRGB(60, 20, 20))
+unloadBtn.MouseButton1Click:Connect(function()
+	ScreenGui:Destroy()
+end)
+
 local AboutSection = CreateSettingsSection("About")
 Interface.New("TextLabel", {
 	BackgroundTransparency = 1,
@@ -1150,7 +1192,7 @@ end)
 -- EXAMPLE USAGE (remove this block when using as a library)
 -- ============================================================
 
-local Main = Library:AddCategory("Main", "zap")
+local Main = Library:AddCategory("Main", "house")
 Main:AddToggle("Feature A", false, function(v)
 	Library:Notify(`Feature A: {v and "ON" or "OFF"}`)
 end)
