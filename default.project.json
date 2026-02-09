@@ -1,0 +1,9 @@
+{
+	"name": "NovaTemplate",
+	"tree": {
+		"$className": "Folder",
+		"Src": {
+			"$path": "Src"
+		}
+	}
+}
