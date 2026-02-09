@@ -13,208 +13,63 @@ local ImportGlobals
 
 -- Holds direct closure data (defining this before the DOM tree for line debugging etc)
 local ClosureBindings = {
-    [7] = function()local wax,script,require=ImportGlobals(7)local ImportGlobals return (function(...)--[[
-	Interface Module - Template
-	Utility for creating UI elements with properties applied automatically.
+    [10] = function()local wax,script,require=ImportGlobals(10)local ImportGlobals return (function(...)--[[
+	Theme Module - Template (Based on Nova)
+	Centralized color definitions for consistent UI theming.
 	
 	Usage:
-		local Interface = require(path.to.Interface)
-		
-		local frame = Interface.New("Frame", {
-			Size = UDim2.fromOffset(200, 100),
-			BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-			Parent = screenGui,
-			
-			["UICorner"] = { CornerRadius = UDim.new(0, 8) },
-			["UIStroke"] = { Color = Color3.fromRGB(50, 50, 50), Thickness = 1 },
-		})
+		local Theme = require(path.to.Theme)
+		frame.BackgroundColor3 = Theme.Background
 ]]
 
-local Interface = {}
-
--- Special UI components that can be created inline
-local SpecialProperties = {
-	["UICorner"] = true,
-	["UIStroke"] = true,
-	["UIPadding"] = true,
-	["UIListLayout"] = true,
-	["UIGridLayout"] = true,
-	["UITableLayout"] = true,
-	["UIPageLayout"] = true,
-	["UIFlexItem"] = true,
-	["UISizeConstraint"] = true,
-	["UITextSizeConstraint"] = true,
-	["UIAspectRatioConstraint"] = true,
-	["UIGradient"] = true,
-	["UIScale"] = true,
+local Theme = {
+	-- Base colors
+	Background = Color3.fromRGB(15, 15, 15),
+	Surface = Color3.fromRGB(20, 20, 20),
+	SurfaceHover = Color3.fromRGB(28, 28, 28),
+	
+	-- Border colors
+	Border = Color3.fromRGB(40, 40, 40),
+	BorderLight = Color3.fromRGB(55, 55, 55),
+	
+	-- Text colors
+	Text = Color3.fromRGB(220, 220, 220),
+	TextMuted = Color3.fromRGB(140, 140, 140),
+	
+	-- Accent colors
+	Accent = Color3.fromRGB(88, 101, 242),
+	AccentHover = Color3.fromRGB(98, 111, 252),
+	
+	-- Status colors
+	Success = Color3.fromRGB(63, 185, 80),
+	Warning = Color3.fromRGB(210, 153, 34),
+	Error = Color3.fromRGB(248, 81, 73),
+	Info = Color3.fromRGB(88, 166, 255),
+	
+	-- Direction colors (from Nova's Incoming/Outgoing)
+	Primary = Color3.fromRGB(63, 185, 80),
+	Secondary = Color3.fromRGB(247, 129, 102),
 }
 
---[[
-	Create a new instance with properties
-	@param className The class name of the instance to create
-	@param properties Table of properties to apply (supports nested UI components)
-	@return The created instance
-]]
-function Interface.New(className: string, properties: { [string]: any }?): Instance
-	local instance = Instance.new(className)
-
-	if properties then
-		for key, value in pairs(properties) do
-			if SpecialProperties[key] then
-				-- Create UI component as child
-				local uiComponent = Instance.new(key)
-				if type(value) == "table" then
-					for prop, val in pairs(value) do
-						uiComponent[prop] = val
-					end
-				end
-				uiComponent.Parent = instance
-			else
-				instance[key] = value
-			end
-		end
-	end
-
-	return instance
+-- Utility function to lighten a color
+function Theme.Lighten(color: Color3, amount: number): Color3
+	return Color3.new(
+		math.min(color.R + amount, 1),
+		math.min(color.G + amount, 1),
+		math.min(color.B + amount, 1)
+	)
 end
 
---[[
-	Create a ScreenGui with common settings
-	@param name The name of the ScreenGui
-	@param parent Optional parent (defaults to CoreGui/PlayerGui)
-	@return The created ScreenGui
-]]
-function Interface.CreateScreenGui(name: string, parent: Instance?): ScreenGui
-	local screenGui = Instance.new("ScreenGui")
-	screenGui.Name = name
-	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	screenGui.ResetOnSpawn = false
-	screenGui.DisplayOrder = 999999
-
-	if parent then
-		screenGui.Parent = parent
-	else
-		-- Try gethui first, then CoreGui
-		local success, _ = pcall(function()
-			if gethui then
-				screenGui.Parent = gethui()
-			else
-				screenGui.Parent = wax.shared.CoreGui
-			end
-		end)
-
-		if not success then
-			pcall(function()
-				screenGui.Parent = wax.shared.Players.LocalPlayer:WaitForChild("PlayerGui")
-			end)
-		end
-	end
-
-	return screenGui
+-- Utility function to darken a color
+function Theme.Darken(color: Color3, amount: number): Color3
+	return Color3.new(
+		math.max(color.R - amount, 0),
+		math.max(color.G - amount, 0),
+		math.max(color.B - amount, 0)
+	)
 end
 
---[[
-	Create a TextLabel with sensible defaults
-]]
-function Interface.CreateTextLabel(properties: { [string]: any }): TextLabel
-	local defaults = {
-		BackgroundTransparency = 1,
-		TextColor3 = Color3.fromRGB(220, 220, 220),
-		TextSize = 14,
-		Font = Enum.Font.GothamMedium,
-		TextXAlignment = Enum.TextXAlignment.Left,
-	}
-
-	for key, value in pairs(defaults) do
-		if properties[key] == nil then
-			properties[key] = value
-		end
-	end
-
-	return Interface.New("TextLabel", properties) :: TextLabel
-end
-
---[[
-	Create a TextButton with sensible defaults
-]]
-function Interface.CreateTextButton(properties: { [string]: any }): TextButton
-	local defaults = {
-		BackgroundTransparency = 1,
-		TextColor3 = Color3.fromRGB(220, 220, 220),
-		TextSize = 14,
-		Font = Enum.Font.GothamMedium,
-		AutoButtonColor = false,
-	}
-
-	for key, value in pairs(defaults) do
-		if properties[key] == nil then
-			properties[key] = value
-		end
-	end
-
-	return Interface.New("TextButton", properties) :: TextButton
-end
-
---[[
-	Create an ImageLabel with sensible defaults
-]]
-function Interface.CreateImageLabel(properties: { [string]: any }): ImageLabel
-	local defaults = {
-		BackgroundTransparency = 1,
-		ScaleType = Enum.ScaleType.Fit,
-	}
-
-	for key, value in pairs(defaults) do
-		if properties[key] == nil then
-			properties[key] = value
-		end
-	end
-
-	return Interface.New("ImageLabel", properties) :: ImageLabel
-end
-
---[[
-	Create an ImageButton with sensible defaults
-]]
-function Interface.CreateImageButton(properties: { [string]: any }): ImageButton
-	local defaults = {
-		BackgroundTransparency = 1,
-		ScaleType = Enum.ScaleType.Fit,
-		AutoButtonColor = false,
-	}
-
-	for key, value in pairs(defaults) do
-		if properties[key] == nil then
-			properties[key] = value
-		end
-	end
-
-	return Interface.New("ImageButton", properties) :: ImageButton
-end
-
---[[
-	Create a ScrollingFrame with sensible defaults
-]]
-function Interface.CreateScrollingFrame(properties: { [string]: any }): ScrollingFrame
-	local defaults = {
-		BackgroundTransparency = 1,
-		BorderSizePixel = 0,
-		ScrollBarThickness = 4,
-		ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80),
-		CanvasSize = UDim2.new(0, 0, 0, 0),
-		AutomaticCanvasSize = Enum.AutomaticSize.Y,
-	}
-
-	for key, value in pairs(defaults) do
-		if properties[key] == nil then
-			properties[key] = value
-		end
-	end
-
-	return Interface.New("ScrollingFrame", properties) :: ScrollingFrame
-end
-
-return Interface
+return Theme
 
 end)() end,
     [9] = function()local wax,script,require=ImportGlobals(9)local ImportGlobals return (function(...)--[[
@@ -550,63 +405,208 @@ end
 return Icons
 
 end)() end,
-    [10] = function()local wax,script,require=ImportGlobals(10)local ImportGlobals return (function(...)--[[
-	Theme Module - Template (Based on Nova)
-	Centralized color definitions for consistent UI theming.
+    [7] = function()local wax,script,require=ImportGlobals(7)local ImportGlobals return (function(...)--[[
+	Interface Module - Template
+	Utility for creating UI elements with properties applied automatically.
 	
 	Usage:
-		local Theme = require(path.to.Theme)
-		frame.BackgroundColor3 = Theme.Background
+		local Interface = require(path.to.Interface)
+		
+		local frame = Interface.New("Frame", {
+			Size = UDim2.fromOffset(200, 100),
+			BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+			Parent = screenGui,
+			
+			["UICorner"] = { CornerRadius = UDim.new(0, 8) },
+			["UIStroke"] = { Color = Color3.fromRGB(50, 50, 50), Thickness = 1 },
+		})
 ]]
 
-local Theme = {
-	-- Base colors
-	Background = Color3.fromRGB(15, 15, 15),
-	Surface = Color3.fromRGB(20, 20, 20),
-	SurfaceHover = Color3.fromRGB(28, 28, 28),
-	
-	-- Border colors
-	Border = Color3.fromRGB(40, 40, 40),
-	BorderLight = Color3.fromRGB(55, 55, 55),
-	
-	-- Text colors
-	Text = Color3.fromRGB(220, 220, 220),
-	TextMuted = Color3.fromRGB(140, 140, 140),
-	
-	-- Accent colors
-	Accent = Color3.fromRGB(88, 101, 242),
-	AccentHover = Color3.fromRGB(98, 111, 252),
-	
-	-- Status colors
-	Success = Color3.fromRGB(63, 185, 80),
-	Warning = Color3.fromRGB(210, 153, 34),
-	Error = Color3.fromRGB(248, 81, 73),
-	Info = Color3.fromRGB(88, 166, 255),
-	
-	-- Direction colors (from Nova's Incoming/Outgoing)
-	Primary = Color3.fromRGB(63, 185, 80),
-	Secondary = Color3.fromRGB(247, 129, 102),
+local Interface = {}
+
+-- Special UI components that can be created inline
+local SpecialProperties = {
+	["UICorner"] = true,
+	["UIStroke"] = true,
+	["UIPadding"] = true,
+	["UIListLayout"] = true,
+	["UIGridLayout"] = true,
+	["UITableLayout"] = true,
+	["UIPageLayout"] = true,
+	["UIFlexItem"] = true,
+	["UISizeConstraint"] = true,
+	["UITextSizeConstraint"] = true,
+	["UIAspectRatioConstraint"] = true,
+	["UIGradient"] = true,
+	["UIScale"] = true,
 }
 
--- Utility function to lighten a color
-function Theme.Lighten(color: Color3, amount: number): Color3
-	return Color3.new(
-		math.min(color.R + amount, 1),
-		math.min(color.G + amount, 1),
-		math.min(color.B + amount, 1)
-	)
+--[[
+	Create a new instance with properties
+	@param className The class name of the instance to create
+	@param properties Table of properties to apply (supports nested UI components)
+	@return The created instance
+]]
+function Interface.New(className: string, properties: { [string]: any }?): Instance
+	local instance = Instance.new(className)
+
+	if properties then
+		for key, value in pairs(properties) do
+			if SpecialProperties[key] then
+				-- Create UI component as child
+				local uiComponent = Instance.new(key)
+				if type(value) == "table" then
+					for prop, val in pairs(value) do
+						uiComponent[prop] = val
+					end
+				end
+				uiComponent.Parent = instance
+			else
+				instance[key] = value
+			end
+		end
+	end
+
+	return instance
 end
 
--- Utility function to darken a color
-function Theme.Darken(color: Color3, amount: number): Color3
-	return Color3.new(
-		math.max(color.R - amount, 0),
-		math.max(color.G - amount, 0),
-		math.max(color.B - amount, 0)
-	)
+--[[
+	Create a ScreenGui with common settings
+	@param name The name of the ScreenGui
+	@param parent Optional parent (defaults to CoreGui/PlayerGui)
+	@return The created ScreenGui
+]]
+function Interface.CreateScreenGui(name: string, parent: Instance?): ScreenGui
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = name
+	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	screenGui.ResetOnSpawn = false
+	screenGui.DisplayOrder = 999999
+
+	if parent then
+		screenGui.Parent = parent
+	else
+		-- Try gethui first, then CoreGui
+		local success, _ = pcall(function()
+			if gethui then
+				screenGui.Parent = gethui()
+			else
+				screenGui.Parent = wax.shared.CoreGui
+			end
+		end)
+
+		if not success then
+			pcall(function()
+				screenGui.Parent = wax.shared.Players.LocalPlayer:WaitForChild("PlayerGui")
+			end)
+		end
+	end
+
+	return screenGui
 end
 
-return Theme
+--[[
+	Create a TextLabel with sensible defaults
+]]
+function Interface.CreateTextLabel(properties: { [string]: any }): TextLabel
+	local defaults = {
+		BackgroundTransparency = 1,
+		TextColor3 = Color3.fromRGB(220, 220, 220),
+		TextSize = 14,
+		Font = Enum.Font.GothamMedium,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}
+
+	for key, value in pairs(defaults) do
+		if properties[key] == nil then
+			properties[key] = value
+		end
+	end
+
+	return Interface.New("TextLabel", properties) :: TextLabel
+end
+
+--[[
+	Create a TextButton with sensible defaults
+]]
+function Interface.CreateTextButton(properties: { [string]: any }): TextButton
+	local defaults = {
+		BackgroundTransparency = 1,
+		TextColor3 = Color3.fromRGB(220, 220, 220),
+		TextSize = 14,
+		Font = Enum.Font.GothamMedium,
+		AutoButtonColor = false,
+	}
+
+	for key, value in pairs(defaults) do
+		if properties[key] == nil then
+			properties[key] = value
+		end
+	end
+
+	return Interface.New("TextButton", properties) :: TextButton
+end
+
+--[[
+	Create an ImageLabel with sensible defaults
+]]
+function Interface.CreateImageLabel(properties: { [string]: any }): ImageLabel
+	local defaults = {
+		BackgroundTransparency = 1,
+		ScaleType = Enum.ScaleType.Fit,
+	}
+
+	for key, value in pairs(defaults) do
+		if properties[key] == nil then
+			properties[key] = value
+		end
+	end
+
+	return Interface.New("ImageLabel", properties) :: ImageLabel
+end
+
+--[[
+	Create an ImageButton with sensible defaults
+]]
+function Interface.CreateImageButton(properties: { [string]: any }): ImageButton
+	local defaults = {
+		BackgroundTransparency = 1,
+		ScaleType = Enum.ScaleType.Fit,
+		AutoButtonColor = false,
+	}
+
+	for key, value in pairs(defaults) do
+		if properties[key] == nil then
+			properties[key] = value
+		end
+	end
+
+	return Interface.New("ImageButton", properties) :: ImageButton
+end
+
+--[[
+	Create a ScrollingFrame with sensible defaults
+]]
+function Interface.CreateScrollingFrame(properties: { [string]: any }): ScrollingFrame
+	local defaults = {
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 4,
+		ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80),
+		CanvasSize = UDim2.new(0, 0, 0, 0),
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+	}
+
+	for key, value in pairs(defaults) do
+		if properties[key] == nil then
+			properties[key] = value
+		end
+	end
+
+	return Interface.New("ScrollingFrame", properties) :: ScrollingFrame
+end
+
+return Interface
 
 end)() end,
     [8] = function()local wax,script,require=ImportGlobals(8)local ImportGlobals return (function(...)--[[
@@ -1900,14 +1900,12 @@ end)
 -- EXAMPLE USAGE (remove this block when using as a library)
 -- ============================================================
 
-local Main = Library:AddCategory("Main", "house")
+local Main = Library:AddCategory("Main", "zap")
 Main:AddToggle("Feature A", false, function(v)
 	Library:Notify(`Feature A: {v and "ON" or "OFF"}`)
 end)
 Main:AddToggle("Feature B", true)
-Main:AddSlider("Speed", 16, 1, 100, function(v)
-	Library:Notify(`Speed: {v}`)
-end)
+Main:AddSlider("Speed", 16, 1, 100)
 Main:AddDropdown("Mode", { "Normal", "Rage", "Legit" }, "Normal", function(v)
 	Library:Notify(`Mode: {v}`)
 end)
@@ -2262,24 +2260,10 @@ local ObjectTree = {
                                 }
                             },
                             {
-                                4,
-                                2,
-                                {
-                                    "Drag"
-                                }
-                            },
-                            {
                                 7,
                                 2,
                                 {
                                     "Interface"
-                                }
-                            },
-                            {
-                                5,
-                                2,
-                                {
-                                    "Helper"
                                 }
                             },
                             {
@@ -2294,6 +2278,20 @@ local ObjectTree = {
                                 2,
                                 {
                                     "Resize"
+                                }
+                            },
+                            {
+                                4,
+                                2,
+                                {
+                                    "Drag"
+                                }
+                            },
+                            {
+                                5,
+                                2,
+                                {
+                                    "Helper"
                                 }
                             },
                             {
@@ -2313,14 +2311,14 @@ local ObjectTree = {
 
 -- Line offsets for debugging (only included when minifyTables is false)
 local LineOffsets = {
-    [6] = 448,
-    [9] = 220,
-    [10] = 553,
-    [7] = 16,
+    [6] = 303,
+    [9] = 75,
+    [7] = 408,
+    [10] = 16,
     [8] = 612,
     [2] = 751,
-    [5] = 1947,
-    [4] = 2129
+    [5] = 1945,
+    [4] = 2127
 }
 
 -- Misc AOT variable imports
